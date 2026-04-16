@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathAdapt — 数学AI学習アプリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #12121a;
+  --bg3: #1a1a26;
+  --surface: #1e1e2e;
+  --surface2: #252535;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #e8e8f0;
+  --text2: #9090a8;
+  --text3: #5a5a72;
+  --accent: #7c6af5;
+  --accent2: #5a4fd4;
+  --accent-glow: rgba(124,106,245,0.25);
+  --green: #4ade80;
+  --green-bg: rgba(74,222,128,0.1);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.1);
+  --amber: #fbbf24;
+  --amber-bg: rgba(251,191,36,0.1);
+  --teal: #2dd4bf;
+  --teal-bg: rgba(45,212,191,0.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font: 'Zen Kaku Gothic New', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== LAYOUT ===== */
+.app-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(12px);
+}
+.logo-mark {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 16px; color: white;
+  box-shadow: 0 0 20px var(--accent-glow);
+  flex-shrink: 0;
+}
+.logo-text { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+.logo-sub { font-size: 11px; color: var(--text2); letter-spacing: 0.02em; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+/* ===== SETUP SCREEN ===== */
+#setup-screen {
+  flex: 1;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.setup-hero {
+  text-align: center;
+  padding: 32px 0 16px;
+}
+.setup-hero h1 {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+.setup-hero h1 span { color: var(--accent); }
+.setup-hero p { font-size: 14px; color: var(--text2); margin-top: 8px; line-height: 1.7; }
+
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.grade-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.grade-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 13px;
+}
+.grade-btn:hover { border-color: var(--border2); color: var(--text); }
+.grade-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+.grade-btn .grade-num { font-size: 20px; font-weight: 900; display: block; }
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.level-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text2);
+  font-family: var(--font);
+}
+.level-btn:hover { border-color: var(--border2); }
+.level-btn.active { font-weight: 700; }
+.level-btn[data-level="A"].active { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+.level-btn[data-level="B"].active { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+.level-btn[data-level="C"].active { background: rgba(248,113,113,0.1); border-color: var(--red); color: var(--red); }
+.level-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+.level-name { font-size: 12px; }
+
+.api-input-wrap { position: relative; }
+.api-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 40px 12px 14px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.api-input:focus { border-color: var(--accent); }
+.api-input::placeholder { color: var(--text3); }
+.api-toggle {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--text2); font-size: 16px; padding: 4px;
+}
+.api-hint { font-size: 11px; color: var(--text3); margin-top: 6px; line-height: 1.5; }
+.api-hint a { color: var(--accent); text-decoration: none; }
+
+.start-btn {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px;
+  color: white;
+  font-family: var(--font);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 30px var(--accent-glow);
+  letter-spacing: -0.01em;
+}
+.start-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+.start-btn:active { transform: translateY(0); }
+.start-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ===== QUIZ SCREEN ===== */
+#quiz-screen {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+}
+.quiz-top {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.quiz-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.meta-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  letter-spacing: 0.03em;
+}
+.badge-grade { background: var(--accent-glow); color: var(--accent); }
+.badge-level-A { background: var(--green-bg); color: var(--green); }
+.badge-level-B { background: var(--amber-bg); color: var(--amber); }
+.badge-level-C { background: var(--red-bg); color: var(--red); }
+.timer-display {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.timer-display.warning { color: var(--amber); }
+.timer-display.danger { color: var(--red); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+.quiz-progress-track {
+  height: 4px;
+  background: var(--surface);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.quiz-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.quiz-body { flex: 1; padding: 20px; overflow-y: auto; }
+.q-number {
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+.q-unit {
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 16px;
+}
+.q-text {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  font-size: 16px;
+  line-height: 1.8;
+  margin-bottom: 20px;
+  min-height: 80px;
+}
+.q-formula {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+  display: block;
+  margin-top: 8px;
+  letter-spacing: 0.03em;
+}
+
+.answer-section { margin-bottom: 16px; }
+.answer-label { font-size: 12px; color: var(--text2); margin-bottom: 8px; font-weight: 500; }
+.answer-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.answer-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.answer-input::placeholder { color: var(--text3); font-family: var(--font); font-size: 13px; }
+.answer-input:disabled { opacity: 0.6; }
+
+.feedback-box {
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  display: none;
+  animation: slideIn 0.2s ease;
+}
+@keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
+.feedback-box.correct { background: var(--green-bg); border: 1px solid rgba(74,222,128,0.25); }
+.feedback-box.wrong { background: var(--red-bg); border: 1px solid rgba(248,113,113,0.25); }
+.feedback-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+.feedback-box.correct .feedback-title { color: var(--green); }
+.feedback-box.wrong .feedback-title { color: var(--red); }
+.feedback-text { font-size: 13px; line-height: 1.7; color: var(--text2); }
+.feedback-answer { font-family: var(--mono); color: var(--text); font-weight: 600; }
+
+.quiz-actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+  padding: 0 20px 24px;
+}
+.btn-skip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-skip:hover { border-color: var(--border2); color: var(--text); }
+.btn-judge {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px;
+  color: white;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+.btn-judge:hover { background: var(--accent2); }
+.btn-judge:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-next {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 14px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: none;
+  grid-column: 1 / -1;
+}
+.btn-next:hover { background: var(--surface); border-color: var(--accent); }
+
+/* ===== RESULT SCREEN ===== */
+#result-screen {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  padding: 20px;
+  gap: 16px;
+  overflow-y: auto;
+}
+.result-hero {
+  text-align: center;
+  padding: 24px 0 8px;
+}
+.result-score {
+  font-size: 72px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.result-score span { font-size: 28px; font-weight: 500; color: var(--text2); }
+.result-label { font-size: 13px; color: var(--text2); margin-top: 6px; }
+.result-comment {
+  font-size: 14px;
+  color: var(--text);
+  margin-top: 12px;
+  line-height: 1.7;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  text-align: center;
+}
+.stat-num { font-size: 24px; font-weight: 900; }
+.stat-name { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+.unit-analysis { }
+.unit-row-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.unit-row-item:last-child { border-bottom: none; }
+.unit-row-name { flex: 1; font-size: 13px; }
+.unit-row-bar { width: 80px; }
+.progress-track {
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s ease;
+}
+.unit-pct { font-size: 12px; font-weight: 700; font-family: var(--mono); min-width: 36px; text-align: right; }
+
+.weak-alert {
+  background: rgba(248,113,113,0.06);
+  border: 1px solid rgba(248,113,113,0.2);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.weak-alert-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+.weak-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--red-bg);
+  border: 1px solid rgba(248,113,113,0.2);
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--red);
+  font-weight: 500;
+  margin: 3px;
+}
+
+.result-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-bottom: 8px;
+}
+.btn-action {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 10px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  line-height: 1.4;
+}
+.btn-action:hover { border-color: var(--border2); background: var(--surface2); }
+.btn-action-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+.btn-action.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  font-weight: 700;
+  grid-column: 1 / -1;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* ===== REVIEW SCREEN ===== */
+#review-screen {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+}
+.review-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.review-header h2 { font-size: 16px; font-weight: 700; }
+.review-count {
+  font-size: 12px;
+  color: var(--text2);
+  background: var(--surface);
+  border-radius: 99px;
+  padding: 2px 10px;
+}
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+}
+.review-list { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.review-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.review-item:hover { border-color: var(--border2); }
+.review-item-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.review-item-unit { font-size: 11px; color: var(--text2); }
+.review-item-q { font-size: 13px; line-height: 1.6; color: var(--text2); }
+.review-item-formula { font-family: var(--mono); font-size: 15px; color: var(--accent); font-weight: 600; display: block; margin-top: 6px; }
+.review-item-actions { display: flex; gap: 8px; margin-top: 12px; }
+.btn-sm {
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font);
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text2);
+  transition: all 0.15s;
+}
+.btn-sm:hover { border-color: var(--border2); color: var(--text); }
+.btn-sm.accent { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* ===== HISTORY SCREEN ===== */
+#history-screen {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+}
+.hist-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+}
+.hist-tab {
+  padding: 12px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--text2);
+  transition: all 0.15s;
+}
+.hist-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+.hist-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+.hist-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hist-icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.hist-icon.ok { background: var(--green-bg); color: var(--green); }
+.hist-icon.ng { background: var(--red-bg); color: var(--red); }
+.hist-info { flex: 1; }
+.hist-unit { font-size: 11px; color: var(--text3); }
+.hist-q { font-size: 13px; color: var(--text2); line-height: 1.4; }
+.hist-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* ===== NAV BAR ===== */
+.nav-bar {
+  display: none;
+  position: sticky;
+  bottom: 0;
+  background: rgba(10,10,15,0.92);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  padding: 8px 0 12px;
+  z-index: 40;
+}
+.nav-inner { display: flex; }
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  cursor: pointer;
+  color: var(--text3);
+  transition: color 0.15s;
+  font-size: 10px;
+}
+.nav-item.active { color: var(--accent); }
+.nav-item svg { width: 20px; height: 20px; }
+
+/* ===== RECOMMEND SCREEN ===== */
+#recommend-screen {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  padding: 16px 20px;
+  gap: 12px;
+  overflow-y: auto;
+}
+.rec-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  gap: 12px;
+}
+.rec-item:hover { border-color: var(--border2); }
+.rec-priority {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.rec-body { flex: 1; }
+.rec-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.rec-sub { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.rec-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.rec-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-weight: 500;
+}
+
+/* ===== LOADING ===== */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  flex-direction: column;
+  gap: 16px;
+}
+.loading-overlay.show { display: flex; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 14px; color: var(--text2); }
+
+/* ===== SIMILAR QUIZ MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 90;
+}
+.modal-overlay.show { display: flex; }
+.modal-sheet {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal-handle {
+  width: 40px; height: 4px;
+  background: var(--border2);
+  border-radius: 99px;
+  margin: 0 auto 20px;
+}
+.modal-close {
+  float: right;
+  background: none; border: none;
+  color: var(--text2); font-size: 18px; cursor: pointer;
+  margin-top: -4px;
+}
+
+/* ===== UTILS ===== */
+.hidden { display: none !important; }
+.show { display: flex !important; }
+.text-green { color: var(--green); }
+.text-red { color: var(--red); }
+.text-amber { color: var(--amber); }
+.text-accent { color: var(--accent); }
+
+/* ===== AI LABEL ===== */
+.ai-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 2px 8px; border-radius: 99px;
+  background: var(--accent-glow); color: var(--accent);
+  border: 1px solid rgba(124,106,245,0.3);
+}
+
+/* ===== SIMILAR QUIZ IN REVIEW ===== */
+.similar-quiz-area {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-top: 10px;
+  display: none;
+}
+.similar-quiz-area.show { display: block; }
+
+/* ===== scrollbar ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<div class="app-wrap">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-mark">M</div>
+    <div>
+      <div class="logo-text">MathAdapt</div>
+      <div class="logo-sub">数と式（文字と式） AI学習</div>
+    </div>
+    <div class="header-right">
+      <span class="ai-badge">✦ AI採点</span>
+    </div>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div id="setup-screen">
+    <div class="setup-hero">
+      <h1>自分だけの<br><span>数学トレーニング</span></h1>
+      <p>AIが自動採点して弱点を見つけ、<br>あなたに合った復習プランを提案します。</p>
+    </div>
+
+    <div class="section-card">
+      <div class="section-label">学年を選択</div>
+      <div class="grade-grid">
+        <button class="grade-btn active" data-grade="中学1年" onclick="selectGrade(this)">
+          <span class="grade-num">1</span>年生
+        </button>
+        <button class="grade-btn" data-grade="中学2年" onclick="selectGrade(this)">
+          <span class="grade-num">2</span>年生
+        </button>
+        <button class="grade-btn" data-grade="中学3年" onclick="selectGrade(this)">
+          <span class="grade-num">3</span>年生
+        </button>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-label">難易度レベル</div>
+      <div class="level-grid">
+        <button class="level-btn" data-level="A" onclick="selectLevel(this)">
+          <span class="level-icon">🌱</span>
+          <span class="level-name">A 基礎</span>
+        </button>
+        <button class="level-btn active" data-level="B" onclick="selectLevel(this)">
+          <span class="level-icon">📚</span>
+          <span class="level-name">B 標準</span>
+        </button>
+        <button class="level-btn" data-level="C" onclick="selectLevel(this)">
+          <span class="level-icon">🔥</span>
+          <span class="level-name">C 応用</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-label">Anthropic APIキー <span style="color:var(--red);font-size:10px;">必須</span></div>
+      <div class="api-input-wrap">
+        <input type="password" id="api-key-input" class="api-input" placeholder="sk-ant-api03-..." />
+        <button class="api-toggle" onclick="toggleApiVis()" title="表示切替">👁</button>
+      </div>
+      <div class="api-hint">
+        キーは端末内のみで使用し、外部に送信しません。<br>
+        <a href="https://console.anthropic.com/keys" target="_blank">console.anthropic.com</a> で取得できます。
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="startQuiz()" id="start-btn">テストを開始する（30分）</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen">
+    <div class="quiz-top">
+      <div class="quiz-meta">
+        <span class="meta-badge badge-grade" id="q-grade-badge"></span>
+        <span class="meta-badge" id="q-level-badge"></span>
+        <span class="timer-display" id="timer">30:00</span>
+      </div>
+      <div class="quiz-progress-track">
+        <div class="quiz-progress-fill" id="quiz-progress" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="quiz-body">
+      <div class="q-number" id="q-number">問題 1 / 10</div>
+      <div class="q-unit" id="q-unit"></div>
+      <div class="q-text" id="q-text">
+        <span id="q-body"></span>
+        <span class="q-formula" id="q-formula"></span>
+      </div>
+
+      <div class="answer-section">
+        <div class="answer-label">あなたの答え</div>
+        <input type="text" class="answer-input" id="answer-input" placeholder="答えを入力してください（例：2a + 7b）" />
+      </div>
+
+      <div class="feedback-box" id="feedback-box">
+        <div class="feedback-title" id="feedback-title"></div>
+        <div class="feedback-text" id="feedback-text"></div>
+      </div>
+    </div>
+
+    <div class="quiz-actions">
+      <button class="btn-skip" id="btn-skip" onclick="skipQuestion()">スキップ</button>
+      <button class="btn-judge" id="btn-judge" onclick="judgeAnswer()">採点する</button>
+      <button class="btn-next" id="btn-next" onclick="nextQuestion()">次の問題へ →</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="result-screen">
+    <div class="result-hero">
+      <div class="result-score" id="result-score-display">
+        <span style="color:var(--accent)">--</span><span>%</span>
+      </div>
+      <div class="result-label">正答率</div>
+      <div class="result-comment" id="result-comment"></div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-num text-green" id="stat-correct">0</div>
+        <div class="stat-name">正解</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num text-red" id="stat-wrong">0</div>
+        <div class="stat-name">不正解</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-skip" style="color:var(--text2)">0</div>
+        <div class="stat-name">スキップ</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-label">単元別 定着度</div>
+      <div class="unit-analysis" id="unit-analysis"></div>
+    </div>
+
+    <div class="weak-alert" id="weak-alert" style="display:none">
+      <div class="weak-alert-title">⚠ AI検出 — 弱点単元</div>
+      <div id="weak-tags"></div>
+      <div id="weak-ai-comment" style="font-size:13px;color:var(--text2);margin-top:10px;line-height:1.7;"></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn-action" onclick="goToReview()">
+        <span class="btn-action-icon">🔁</span>
+        間違い<br>解き直し
+      </button>
+      <button class="btn-action" onclick="showNav('recommend-screen')">
+        <span class="btn-action-icon">🎯</span>
+        復習<br>プラン
+      </button>
+      <button class="btn-action primary" onclick="resetToSetup()">
+        もう一度テストする
+      </button>
+    </div>
+  </div>
+
+  <!-- REVIEW SCREEN -->
+  <div id="review-screen">
+    <div class="review-header">
+      <button class="btn-back" onclick="showNav('result-screen')">←</button>
+      <h2>解き直しキュー</h2>
+      <span class="review-count" id="review-count">0 問</span>
+    </div>
+    <div class="review-list" id="review-list"></div>
+  </div>
+
+  <!-- HISTORY SCREEN -->
+  <div id="history-screen">
+    <div class="hist-tabs">
+      <div class="hist-tab active" onclick="switchHistTab('all', this)">すべて</div>
+      <div class="hist-tab" onclick="switchHistTab('wrong', this)">不正解</div>
+      <div class="hist-tab" onclick="switchHistTab('correct', this)">正解</div>
+    </div>
+    <div class="hist-body" id="hist-body"></div>
+  </div>
+
+  <!-- RECOMMEND SCREEN -->
+  <div id="recommend-screen">
+    <div class="section-label" style="padding-top:8px;">AIによる復習プラン</div>
+    <div id="rec-list"></div>
+  </div>
+
+  <!-- NAV BAR -->
+  <div class="nav-bar" id="nav-bar">
+    <div class="nav-inner">
+      <div class="nav-item active" id="nav-result" onclick="showNav('result-screen'); setNavActive('nav-result')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        結果
+      </div>
+      <div class="nav-item" id="nav-review" onclick="showNav('review-screen'); setNavActive('nav-review')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        解き直し
+      </div>
+      <div class="nav-item" id="nav-recommend" onclick="showNav('recommend-screen'); setNavActive('nav-recommend')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        おすすめ
+      </div>
+      <div class="nav-item" id="nav-history" onclick="showNav('history-screen'); setNavActive('nav-history'); renderHistory()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        履歴
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">AIが採点中...</div>
+</div>
+
+<!-- SIMILAR MODAL -->
+<div class="modal-overlay" id="similar-modal" onclick="closeSimilarModal(event)">
+  <div class="modal-sheet" id="similar-modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="document.getElementById('similar-modal').classList.remove('show')">✕</button>
+    <div style="margin-bottom:16px;">
+      <div class="section-label">類似問題</div>
+      <div class="ai-badge" style="margin-bottom:8px;">✦ AIが生成した問題</div>
+    </div>
+    <div id="similar-content"></div>
+  </div>
+</div>
+
+<script>
+/* ========================================
+   問題バンク (中1〜3 × A/B/C × 各単元)
+======================================== */
+const QUESTION_BANK = {
+  "中学1年": {
+    A: [
+      { id:"1A-1", unit:"文字と式の意味", body:"次の数量を文字式で表しなさい。", formula:"1個 a 円のりんごを 5 個買ったときの代金", answer_key:"5a" },
+      { id:"1A-2", unit:"文字と式の意味", body:"次の式の値を求めなさい。 a = 3 のとき", formula:"4a + 2", answer_key:"14" },
+      { id:"1A-3", unit:"同類項の整理", body:"同類項をまとめて、式を簡単にしなさい。", formula:"3x + 2x", answer_key:"5x" },
+      { id:"1A-4", unit:"同類項の整理", body:"同類項をまとめて、式を簡単にしなさい。", formula:"5a − 2a + a", answer_key:"4a" },
+      { id:"1A-5", unit:"式の加法・減法", body:"次の計算をしなさい。", formula:"(2x + 1) + (3x + 4)", answer_key:"5x + 5" },
+      { id:"1A-6", unit:"式の加法・減法", body:"次の計算をしなさい。", formula:"(5a − 2) − (2a − 3)", answer_key:"3a + 1" },
+      { id:"1A-7", unit:"文字式の利用", body:"縦 a cm、横 b cm の長方形の周の長さを式で表しなさい。", formula:"", answer_key:"2a + 2b" },
+      { id:"1A-8", unit:"文字式の利用", body:"x 円の品物を 3 個買い、500 円を払ったときのおつりを式で表しなさい。", formula:"", answer_key:"500 − 3x" },
+      { id:"1A-9", unit:"同類項の整理", body:"次の式を簡単にしなさい。", formula:"2x + 3y − x + y", answer_key:"x + 4y" },
+      { id:"1A-10", unit:"式の加法・減法", body:"次の計算をしなさい。", formula:"(4m − 1) + (−2m + 5)", answer_key:"2m + 4" },
+    ],
+    B: [
+      { id:"1B-1", unit:"同類項の整理", body:"次の式を簡単にしなさい。", formula:"3a + 2b − a + 5b", answer_key:"2a + 7b" },
+      { id:"1B-2", unit:"式の加法・減法", body:"次の計算をしなさい。", formula:"(4x − 3y) + (−2x + 5y)", answer_key:"2x + 2y" },
+      { id:"1B-3", unit:"式の加法・減法", body:"次の計算をしなさい。", formula:"(3a + 2b) − (a − 4b)", answer_key:"2a + 6b" },
+      { id:"1B-4", unit:"同類項の整理", body:"次の式を簡単にしなさい。", formula:"5x² − 3x + 2x² + x", answer_key:"7x² − 2x" },
+      { id:"1B-5", unit:"式の加法・減法", body:"次の計算をしなさい。", formula:"3(2a − b) + 2(a + 3b)", answer_key:"8a + 3b" },
+      { id:"1B-6", unit:"文字式の利用", body:"速さ v km/h で t 時間走ったときの道のりを式で表し、v = 60、t = 2.5 のとき値を求めなさい。", formula:"", answer_key:"vt = 150" },
+      { id:"1B-7", unit:"式の加法・減法", body:"次の計算をしなさい。", formula:"2(3x − 4) − 3(x − 2)", answer_key:"3x − 2" },
+      { id:"1B-8", unit:"文字式の利用", body:"連続する 3 つの整数の和を、もっとも小さい整数を n として式で表しなさい。", formula:"", answer_key:"3n + 3" },
+      { id:"1B-9", unit:"同類項の整理", body:"次の式を簡単にしなさい。", formula:"4(2a − 3b) − 2(3a − b)", answer_key:"2a − 10b" },
+      { id:"1B-10", unit:"式の加法・減法", body:"次の計算をしなさい。", formula:"\\frac{3x+1}{2} + \\frac{x-3}{2}", answer_key:"2x − 1" },
+    ],
+    C: [
+      { id:"1C-1", unit:"文字式の利用", body:"2 けたの自然数で、十の位の数を a、一の位の数を b とするとき、この数を式で表しなさい。また、十の位と一の位を入れ替えた数との差を求めなさい。", formula:"", answer_key:"9(a − b)" },
+      { id:"1C-2", unit:"式の加法・減法", body:"次の計算をしなさい。", formula:"\\frac{2(3x−1)}{3} − \\frac{4x−5}{6}", answer_key:"\\frac{8x+3}{6}" },
+      { id:"1C-3", unit:"同類項の整理", body:"A = 2x − 3y、B = −x + 5y のとき、2A − 3B を求めなさい。", formula:"", answer_key:"7x − 21y" },
+      { id:"1C-4", unit:"文字式の利用", body:"n を整数とするとき、2n と 2n+2 の積が 8 の倍数であることを文字式を使って証明しなさい。", formula:"", answer_key:"4n(n+1) — n か n+1 のどちらかが偶数なので8の倍数" },
+      { id:"1C-5", unit:"式の加法・減法", body:"次の式を計算しなさい。", formula:"3(a+2b) − \\{2a − 4(b−a)\\}", answer_key:"−3a + 10b" },
+    ],
+  },
+  "中学2年": {
+    A: [
+      { id:"2A-1", unit:"単項式の乗除", body:"次の計算をしなさい。", formula:"3a × 4b", answer_key:"12ab" },
+      { id:"2A-2", unit:"単項式の乗除", body:"次の計算をしなさい。", formula:"6x² ÷ 3x", answer_key:"2x" },
+      { id:"2A-3", unit:"多項式の計算", body:"次の計算をしなさい。", formula:"2(3x + y) − 3(x − 2y)", answer_key:"3x + 8y" },
+      { id:"2A-4", unit:"多項式の計算", body:"次の計算をしなさい。", formula:"(x + 3)(x + 2)", answer_key:"x² + 5x + 6" },
+      { id:"2A-5", unit:"等式の変形", body:"等式 y = 3x − 6 を x について解きなさい。", formula:"", answer_key:"x = (y + 6) / 3" },
+      { id:"2A-6", unit:"単項式の乗除", body:"次の計算をしなさい。", formula:"(−2a)² × 3b", answer_key:"12a²b" },
+      { id:"2A-7", unit:"多項式の計算", body:"次の計算をしなさい。", formula:"(x + 4)(x − 4)", answer_key:"x² − 16" },
+      { id:"2A-8", unit:"等式の変形", body:"等式 S = \\frac{1}{2}(a+b)h を h について解きなさい。", formula:"", answer_key:"h = 2S / (a+b)" },
+      { id:"2A-9", unit:"多項式の計算", body:"次の計算をしなさい。", formula:"(2a − 1)²", answer_key:"4a² − 4a + 1" },
+      { id:"2A-10", unit:"単項式の乗除", body:"次の計算をしなさい。", formula:"12x²y ÷ (−4xy)", answer_key:"−3x" },
+    ],
+    B: [
+      { id:"2B-1", unit:"多項式の計算", body:"次の計算をしなさい。", formula:"(x − 3)(x + 5) − (x − 1)²", answer_key:"x + 14" },
+      { id:"2B-2", unit:"単項式の乗除", body:"次の計算をしなさい。", formula:"(3ab)² ÷ 6a", answer_key:"\\frac{3a b²}{2}" },
+      { id:"2B-3", unit:"多項式の計算", body:"次の式を因数分解しなさい。", formula:"x² − 9", answer_key:"(x+3)(x−3)" },
+      { id:"2B-4", unit:"多項式の計算", body:"次の式を因数分解しなさい。", formula:"x² + 6x + 9", answer_key:"(x+3)²" },
+      { id:"2B-5", unit:"等式の変形", body:"等式 v = v₀ + at を a について解きなさい。", formula:"", answer_key:"a = (v − v₀) / t" },
+      { id:"2B-6", unit:"多項式の計算", body:"次の計算をしなさい。", formula:"(2x + y)(x − 3y) + 2y²", answer_key:"2x² − 5xy − y²" },
+      { id:"2B-7", unit:"多項式の計算", body:"次の式を因数分解しなさい。", formula:"2x² − 8", answer_key:"2(x+2)(x−2)" },
+      { id:"2B-8", unit:"多項式の計算", body:"次の式を因数分解しなさい。", formula:"x² − 5x + 6", answer_key:"(x−2)(x−3)" },
+      { id:"2B-9", unit:"多項式の計算", body:"(x+1)(x−1)(x²+1) を展開しなさい。", formula:"", answer_key:"x⁴ − 1" },
+      { id:"2B-10", unit:"単項式の乗除", body:"次の計算をしなさい。", formula:"\\frac{4a³b}{3} ÷ \\frac{2ab²}{9}", answer_key:"6a²/b" },
+    ],
+    C: [
+      { id:"2C-1", unit:"多項式の計算", body:"次の式を計算しなさい。", formula:"(a+b+c)² − (a−b−c)²", answer_key:"4a(b+c)" },
+      { id:"2C-2", unit:"多項式の計算", body:"次の式を因数分解しなさい。", formula:"x² + 2xy + y² − 4", answer_key:"(x+y+2)(x+y−2)" },
+      { id:"2C-3", unit:"文字式の証明", body:"4 つの連続する整数の積に 1 を加えた数は、ある整数の 2 乗になることを証明しなさい。連続する整数を n−1, n, n+1, n+2 として考えなさい。", formula:"", answer_key:"(n²+n−1)²" },
+    ],
+  },
+  "中学3年": {
+    A: [
+      { id:"3A-1", unit:"多項式の展開", body:"次の式を展開しなさい。", formula:"(x + 5)²", answer_key:"x² + 10x + 25" },
+      { id:"3A-2", unit:"多項式の展開", body:"次の式を展開しなさい。", formula:"(3a + 2b)(3a − 2b)", answer_key:"9a² − 4b²" },
+      { id:"3A-3", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"x² − 4x − 12", answer_key:"(x+2)(x−6)" },
+      { id:"3A-4", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"4x² − 12x + 9", answer_key:"(2x−3)²" },
+      { id:"3A-5", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"3x² − 75", answer_key:"3(x+5)(x−5)" },
+      { id:"3A-6", unit:"多項式の展開", body:"次の式を展開しなさい。", formula:"(2x − 3y)²", answer_key:"4x² − 12xy + 9y²" },
+      { id:"3A-7", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"x² + 4x + 4", answer_key:"(x+2)²" },
+      { id:"3A-8", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"x² − x − 6", answer_key:"(x+2)(x−3)" },
+      { id:"3A-9", unit:"多項式の展開", body:"次の式を展開しなさい。", formula:"(x + y)(x² − xy + y²)", answer_key:"x³ + y³" },
+      { id:"3A-10", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"2x² + 7x + 3", answer_key:"(2x+1)(x+3)" },
+    ],
+    B: [
+      { id:"3B-1", unit:"多項式の展開", body:"次の式を展開しなさい。", formula:"(x − 1)(x + 1)(x² + 1)", answer_key:"x⁴ − 1" },
+      { id:"3B-2", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"x² + 2x − 15", answer_key:"(x+5)(x−3)" },
+      { id:"3B-3", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"6x² − 7x − 3", answer_key:"(2x−3)(3x+1)" },
+      { id:"3B-4", unit:"多項式の展開", body:"101² を乗法公式を利用して計算しなさい。", formula:"", answer_key:"10201" },
+      { id:"3B-5", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"x²(x−1) − x + 1", answer_key:"(x−1)²(x+1)" },
+      { id:"3B-6", unit:"多項式の展開", body:"次の式を展開しなさい。", formula:"(a + b − c)(a − b + c)", answer_key:"a² − (b−c)² = a² − b² + 2bc − c²" },
+      { id:"3B-7", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"x⁴ − 16", answer_key:"(x+2)(x−2)(x²+4)" },
+      { id:"3B-8", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"2x² − 5xy − 3y²", answer_key:"(2x+y)(x−3y)" },
+      { id:"3B-9", unit:"多項式の展開", body:"次の式を計算しなさい。", formula:"(x+2)³ − (x−1)³", answer_key:"9x² − 3x + 10" },
+      { id:"3B-10", unit:"因数分解", body:"次の式を因数分解しなさい。", formula:"a² + 4ab + 4b² − 9", answer_key:"(a+2b+3)(a+2b−3)" },
+    ],
+    C: [
+      { id:"3C-1", unit:"因数分解応用", body:"次の式を因数分解しなさい。", formula:"x⁴ + x² + 1", answer_key:"(x²+x+1)(x²−x+1)" },
+      { id:"3C-2", unit:"因数分解応用", body:"次の式を因数分解しなさい。", formula:"a³ + b³ + c³ − 3abc", answer_key:"(a+b+c)(a²+b²+c²−ab−bc−ca)" },
+      { id:"3C-3", unit:"文字式の証明", body:"n を正の整数とするとき、n(n+1)(n+2) は 6 の倍数であることを証明しなさい。", formula:"", answer_key:"連続3整数の積は必ず2と3の倍数" },
+    ],
+  },
+};
+
+/* ========================================
+   STATE
+======================================== */
+let state = {
+  grade: "中学1年",
+  level: "B",
+  apiKey: "",
+  questions: [],
+  currentIdx: 0,
+  answers: [],         // {q, answered, correct, userAnswer, feedback, skipped}
+  timerSec: 1800,
+  timerInterval: null,
+  reviewStack: [],     // wrong questions for review
+  history: [],
+  quizDone: false,
+};
+
+/* ========================================
+   SETUP
+======================================== */
+function selectGrade(el) {
+  document.querySelectorAll('.grade-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.grade = el.dataset.grade;
+}
+function selectLevel(el) {
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.level = el.dataset.level;
+}
+function toggleApiVis() {
+  const inp = document.getElementById('api-key-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function startQuiz() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key) { alert('APIキーを入力してください。'); return; }
+  state.apiKey = key;
+
+  const bank = QUESTION_BANK[state.grade]?.[state.level] || [];
+  if (!bank.length) { alert('この学年・レベルの問題が準備されていません。'); return; }
+
+  // shuffle & take up to 10
+  const shuffled = [...bank].sort(() => Math.random() - 0.5).slice(0, Math.min(10, bank.length));
+  state.questions = shuffled;
+  state.currentIdx = 0;
+  state.answers = [];
+  state.reviewStack = [];
+  state.timerSec = 1800;
+  state.quizDone = false;
+
+  // UI switch
+  document.getElementById('setup-screen').style.display = 'none';
+  const qs = document.getElementById('quiz-screen');
+  qs.style.display = 'flex';
+
+  document.getElementById('q-grade-badge').textContent = state.grade;
+  const lb = document.getElementById('q-level-badge');
+  lb.textContent = `Lv.${state.level}`;
+  lb.className = `meta-badge badge-level-${state.level}`;
+
+  startTimer();
+  renderQuestion();
+}
+
+/* ========================================
+   TIMER
+======================================== */
+function startTimer() {
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    state.timerSec--;
+    const el = document.getElementById('timer');
+    const m = Math.floor(state.timerSec / 60).toString().padStart(2, '0');
+    const s = (state.timerSec % 60).toString().padStart(2, '0');
+    el.textContent = `${m}:${s}`;
+    el.className = 'timer-display';
+    if (state.timerSec <= 300) el.className = 'timer-display warning';
+    if (state.timerSec <= 60) el.className = 'timer-display danger';
+    if (state.timerSec <= 0) endQuiz();
+  }, 1000);
+}
+
+/* ========================================
+   QUESTION RENDER
+======================================== */
+function renderQuestion() {
+  const q = state.questions[state.currentIdx];
+  const total = state.questions.length;
+  const idx = state.currentIdx;
+
+  document.getElementById('q-number').textContent = `問題 ${idx+1} / ${total}`;
+  document.getElementById('q-unit').textContent = `単元：${q.unit}`;
+  document.getElementById('q-body').textContent = q.body;
+  document.getElementById('q-formula').textContent = q.formula || '';
+  document.getElementById('quiz-progress').style.width = `${(idx / total) * 100}%`;
+
+  const ai = document.getElementById('answer-input');
+  ai.value = '';
+  ai.disabled = false;
+  ai.focus();
+
+  document.getElementById('feedback-box').style.display = 'none';
+  document.getElementById('btn-skip').style.display = '';
+  document.getElementById('btn-judge').style.display = '';
+  document.getElementById('btn-judge').disabled = false;
+  document.getElementById('btn-next').style.display = 'none';
+}
+
+/* ========================================
+   JUDGE (AI)
+======================================== */
+async function judgeAnswer() {
+  const q = state.questions[state.currentIdx];
+  const userAns = document.getElementById('answer-input').value.trim();
+  if (!userAns) { alert('答えを入力してください。'); return; }
+
+  document.getElementById('btn-judge').disabled = true;
+  document.getElementById('answer-input').disabled = true;
+  showLoading('AIが採点中...');
+
+  try {
+    const prompt = `あなたは中学数学の採点AIです。以下の問題に対する生徒の答えを採点してください。
+
+問題: ${q.body} ${q.formula}
+模範解答: ${q.answer_key}
+生徒の答え: ${userAns}
+
+採点基準：
+- 数式の表現の違い（例：「2a+7b」と「7b+2a」）は同じとみなす
+- 係数や符号の細かいミスも考慮する
+- 部分点はなし（○か×のみ）
+
+以下のJSON形式のみで回答してください（他のテキスト不要）：
+{"correct": true/false, "feedback": "短い採点コメント（50字以内）", "correct_answer": "正しい答えの表記"}`;
+
+    const resp = await callClaude(prompt, 300);
+    const data = JSON.parse(resp.replace(/```json|```/g,'').trim());
+
+    const isCorrect = data.correct;
+    const feedback = data.feedback || '';
+    const correctAnswer = data.correct_answer || q.answer_key;
+
+    // record
+    const record = {
+      q, answered: true, correct: isCorrect,
+      userAnswer: userAns, feedback, correctAnswer, skipped: false,
+    };
+    state.answers.push(record);
+    addToHistory(record);
+    if (!isCorrect) state.reviewStack.push(record);
+
+    // show feedback
+    const fb = document.getElementById('feedback-box');
+    fb.style.display = 'block';
+    fb.className = `feedback-box ${isCorrect ? 'correct' : 'wrong'}`;
+    document.getElementById('feedback-title').textContent = isCorrect ? '✓ 正解！' : '✗ 不正解';
+    document.getElementById('feedback-text').innerHTML = feedback +
+      (!isCorrect ? `<br><br>正解：<span class="feedback-answer">${correctAnswer}</span>` : '');
+
+    showNextOrEnd();
+  } catch(e) {
+    document.getElementById('btn-judge').disabled = false;
+    document.getElementById('answer-input').disabled = false;
+    alert('採点中にエラーが発生しました。APIキーを確認してください。\n' + e.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+function skipQuestion() {
+  const q = state.questions[state.currentIdx];
+  const record = { q, answered: false, correct: false, userAnswer: '', feedback: 'スキップ', correctAnswer: q.answer_key, skipped: true };
+  state.answers.push(record);
+  addToHistory(record);
+  state.reviewStack.push(record);
+  nextQuestion();
+}
+
+function showNextOrEnd() {
+  document.getElementById('btn-skip').style.display = 'none';
+  document.getElementById('btn-judge').style.display = 'none';
+  const btnNext = document.getElementById('btn-next');
+  btnNext.style.display = '';
+  if (state.currentIdx >= state.questions.length - 1) {
+    btnNext.textContent = '結果を見る →';
+    btnNext.onclick = endQuiz;
+  } else {
+    btnNext.textContent = '次の問題へ →';
+    btnNext.onclick = nextQuestion;
+  }
+}
+
+function nextQuestion() {
+  state.currentIdx++;
+  if (state.currentIdx >= state.questions.length) { endQuiz(); return; }
+  renderQuestion();
+}
+
+/* ========================================
+   END QUIZ
+======================================== */
+async function endQuiz() {
+  clearInterval(state.timerInterval);
+  state.quizDone = true;
+
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'flex';
+  document.getElementById('nav-bar').style.display = 'block';
+
+  const correct = state.answers.filter(a => a.correct).length;
+  const wrong = state.answers.filter(a => !a.correct && !a.skipped).length;
+  const skip = state.answers.filter(a => a.skipped).length;
+  const total = state.answers.length;
+  const pct = total ? Math.round(correct / total * 100) : 0;
+
+  document.getElementById('result-score-display').innerHTML = `<span style="color:var(--accent)">${pct}</span><span>%</span>`;
+  document.getElementById('stat-correct').textContent = correct;
+  document.getElementById('stat-wrong').textContent = wrong;
+  document.getElementById('stat-skip').textContent = skip;
+
+  // unit stats
+  const unitMap = {};
+  state.answers.forEach(a => {
+    const u = a.q.unit;
+    if (!unitMap[u]) unitMap[u] = { correct: 0, total: 0 };
+    unitMap[u].total++;
+    if (a.correct) unitMap[u].correct++;
+  });
+
+  const unitHtml = Object.entries(unitMap).map(([unit, data]) => {
+    const p = Math.round(data.correct / data.total * 100);
+    const color = p >= 75 ? 'var(--green)' : p >= 50 ? 'var(--amber)' : 'var(--red)';
+    return `<div class="unit-row-item">
+      <div class="unit-row-name">${unit}</div>
+      <div class="unit-row-bar">
+        <div class="progress-track"><div class="progress-fill-bar" style="width:${p}%;background:${color}"></div></div>
+      </div>
+      <div class="unit-pct" style="color:${color}">${p}%</div>
+    </div>`;
+  }).join('');
+  document.getElementById('unit-analysis').innerHTML = unitHtml;
+
+  // weak units
+  const weakUnits = Object.entries(unitMap).filter(([,d]) => d.correct/d.total < 0.6).map(([u]) => u);
+  if (weakUnits.length) {
+    document.getElementById('weak-alert').style.display = 'block';
+    document.getElementById('weak-tags').innerHTML = weakUnits.map(u =>
+      `<span class="weak-tag">⚠ ${u}</span>`).join('');
+    // AI comment
+    getWeakComment(weakUnits, pct);
+  }
+
+  // AI overall comment
+  getResultComment(pct, weakUnits);
+
+  // render recommend
+  renderRecommend(unitMap, weakUnits);
+  // render review
+  renderReview();
+}
+
+async function getResultComment(pct, weakUnits) {
+  try {
+    const prompt = `中学数学のテスト結果：正答率${pct}%、弱点単元：${weakUnits.join('、') || 'なし'}。学年：${state.grade}、レベル：${state.level}。
+生徒へ向けた励ましと具体的アドバイスを60字以内で一言お願いします。JSON: {"comment":"..."}`;
+    const r = await callClaude(prompt, 200);
+    const d = JSON.parse(r.replace(/```json|```/g,'').trim());
+    document.getElementById('result-comment').textContent = d.comment || '';
+  } catch(e) {
+    document.getElementById('result-comment').textContent = 'お疲れさまでした！復習を続けて実力をアップしましょう。';
+  }
+}
+
+async function getWeakComment(weakUnits, pct) {
+  try {
+    const prompt = `中学数学の弱点単元：${weakUnits.join('、')}（正答率${pct}%）。${state.grade}の生徒に対して、各弱点単元の学習ポイントを簡潔に説明してください。80字以内。JSON: {"comment":"..."}`;
+    const r = await callClaude(prompt, 200);
+    const d = JSON.parse(r.replace(/```json|```/g,'').trim());
+    document.getElementById('weak-ai-comment').textContent = d.comment || '';
+  } catch(e) {}
+}
+
+/* ========================================
+   RECOMMEND
+======================================== */
+function renderRecommend(unitMap, weakUnits) {
+  const recs = [];
+  weakUnits.forEach(u => {
+    recs.push({
+      priority: '🔥', title: `「${u}」を集中復習`, color: 'var(--red)',
+      sub: `正答率が60%未満です。基礎から見直しましょう。`,
+      tags: [{t:'最優先',c:'var(--red-bg)',tc:'var(--red)'}, {t:'解き直しあり',c:'var(--amber-bg)',tc:'var(--amber)'}],
+    });
+  });
+  Object.entries(unitMap || {}).forEach(([u, d]) => {
+    const p = d.correct/d.total;
+    if (p >= 0.6 && p < 0.8) {
+      recs.push({
+        priority: '📝', title: `「${u}」を強化`, color: 'var(--amber)',
+        sub: `正答率${Math.round(p*100)}%。もう一息で定着します。`,
+        tags: [{t:'強化推奨',c:'var(--amber-bg)',tc:'var(--amber)'}],
+      });
+    }
+  });
+  if (weakUnits.length === 0) {
+    const nextGrade = { '中学1年':'中学2年', '中学2年':'中学3年', '中学3年':null };
+    const next = nextGrade[state.grade];
+    if (next) recs.push({
+      priority: '⬆', title: `${next}の問題に挑戦！`, color: 'var(--accent)',
+      sub: `すべての単元で高い定着度です。次の学年へ進みましょう。`,
+      tags: [{t:'ステップアップ',c:'var(--accent-glow)',tc:'var(--accent)'}],
+    });
+  }
+  const html = recs.map(r => `
+    <div class="rec-item">
+      <div class="rec-priority" style="background:${r.color}22;color:${r.color};font-size:18px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;">${r.priority}</div>
+      <div class="rec-body">
+        <div class="rec-title">${r.title}</div>
+        <div class="rec-sub">${r.sub}</div>
+        <div class="rec-tags">${r.tags.map(tag => `<span class="rec-tag" style="background:${tag.c};color:${tag.tc}">${tag.t}</span>`).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('rec-list').innerHTML = html || '<div style="color:var(--text2);font-size:13px;padding:16px 0;">テストを完了すると復習プランが表示されます。</div>';
+}
+
+/* ========================================
+   REVIEW
+======================================== */
+function renderReview() {
+  const stack = state.reviewStack;
+  document.getElementById('review-count').textContent = `${stack.length} 問`;
+  if (!stack.length) {
+    document.getElementById('review-list').innerHTML = '<div style="color:var(--text2);font-size:14px;padding:20px 0;text-align:center;">解き直しキューは空です 🎉</div>';
+    return;
+  }
+  const html = stack.map((rec, i) => `
+    <div class="review-item" id="review-item-${i}">
+      <div class="review-item-header">
+        <span class="meta-badge badge-grade">${state.grade}</span>
+        <span class="review-item-unit">${rec.q.unit}</span>
+        ${rec.skipped ? '<span class="meta-badge" style="background:var(--amber-bg);color:var(--amber)">スキップ</span>' : '<span class="meta-badge" style="background:var(--red-bg);color:var(--red)">不正解</span>'}
+      </div>
+      <div class="review-item-q">${rec.q.body}<span class="review-item-formula">${rec.q.formula || ''}</span></div>
+      <div class="review-item-actions">
+        <button class="btn-sm accent" onclick="startReviewQuestion(${i})">解き直す</button>
+        <button class="btn-sm" onclick="showSimilar(${i})">類似問題 ✦AI</button>
+        <button class="btn-sm" onclick="removeFromReview(${i})" style="margin-left:auto">完了</button>
+      </div>
+      <div class="similar-quiz-area" id="similar-${i}"></div>
+    </div>
+  `).join('');
+  document.getElementById('review-list').innerHTML = html;
+}
+
+function goToReview() {
+  showNav('review-screen');
+  setNavActive('nav-review');
+  renderReview();
+}
+
+async function startReviewQuestion(idx) {
+  const rec = state.reviewStack[idx];
+  const q = rec.q;
+  const answerDiv = document.getElementById(`similar-${idx}`);
+  answerDiv.className = 'similar-quiz-area show';
+  answerDiv.innerHTML = `
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">もう一度チャレンジ</div>
+    <div style="font-size:13px;margin-bottom:10px;">${q.body} <span style="font-family:var(--mono);color:var(--accent);font-weight:600;">${q.formula||''}</span></div>
+    <input type="text" class="answer-input" id="retry-input-${idx}" placeholder="答えを入力..." style="margin-bottom:10px;" />
+    <button class="btn-sm accent" onclick="judgeRetry(${idx})">採点する</button>
+    <div id="retry-fb-${idx}" style="margin-top:8px;font-size:13px;"></div>
+  `;
+}
+
+async function judgeRetry(idx) {
+  const rec = state.reviewStack[idx];
+  const q = rec.q;
+  const userAns = document.getElementById(`retry-input-${idx}`).value.trim();
+  if (!userAns) return;
+  showLoading('採点中...');
+  try {
+    const prompt = `問題: ${q.body} ${q.formula}\n模範解答: ${q.answer_key}\n生徒の答え: ${userAns}\n採点してください。JSON: {"correct": true/false, "feedback": "50字以内"}`;
+    const r = await callClaude(prompt, 200);
+    const d = JSON.parse(r.replace(/```json|```/g,'').trim());
+    const fb = document.getElementById(`retry-fb-${idx}`);
+    if (d.correct) {
+      fb.innerHTML = `<span class="text-green">✓ 正解！${d.feedback}</span>`;
+      state.reviewStack[idx]._solved = true;
+    } else {
+      fb.innerHTML = `<span class="text-red">✗ ${d.feedback}</span><br><span style="color:var(--text2)">正解：<span style="font-family:var(--mono)">${q.answer_key}</span></span>`;
+    }
+  } catch(e) { alert('エラー: ' + e.message); }
+  finally { hideLoading(); }
+}
+
+async function showSimilar(idx) {
+  const rec = state.reviewStack[idx];
+  const q = rec.q;
+  showLoading('類似問題を生成中...');
+  try {
+    const prompt = `中学数学の問題と類似した新しい問題を1問生成してください。
+元の問題: ${q.body} ${q.formula}
+単元: ${q.unit}、学年: ${state.grade}、レベル: ${state.level}
+
+数字や係数を変えた類似問題を生成。JSON形式のみで回答:
+{"body":"問題文","formula":"数式（なければ空文字）","answer":"模範解答","hint":"ヒント（30字以内）"}`;
+    const r = await callClaude(prompt, 300);
+    const d = JSON.parse(r.replace(/```json|```/g,'').trim());
+    document.getElementById('similar-content').innerHTML = `
+      <div class="q-text" style="margin-bottom:16px;">${d.body}<span class="q-formula">${d.formula||''}</span></div>
+      <input type="text" class="answer-input" id="sim-input" placeholder="答えを入力..." style="margin-bottom:10px;" />
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="btn-sm accent" onclick="judgeSimilar('${escapeStr(d.answer)}')">採点する</button>
+        <button class="btn-sm" onclick="document.getElementById('sim-hint').style.display='block'">ヒントを見る</button>
+      </div>
+      <div id="sim-hint" style="display:none;font-size:12px;color:var(--text2);margin-bottom:8px;">💡 ${d.hint}</div>
+      <div id="sim-feedback"></div>
+    `;
+    document.getElementById('similar-modal').classList.add('show');
+  } catch(e) { alert('類似問題の生成に失敗しました。'); }
+  finally { hideLoading(); }
+}
+
+async function judgeSimilar(answerKey) {
+  const userAns = document.getElementById('sim-input').value.trim();
+  if (!userAns) return;
+  showLoading('採点中...');
+  try {
+    const prompt = `模範解答: ${answerKey}\n生徒の答え: ${userAns}\n採点。JSON: {"correct":true/false,"feedback":"30字以内"}`;
+    const r = await callClaude(prompt, 150);
+    const d = JSON.parse(r.replace(/```json|```/g,'').trim());
+    document.getElementById('sim-feedback').innerHTML = d.correct
+      ? `<span class="text-green" style="font-size:14px;">✓ 正解！${d.feedback}</span>`
+      : `<span class="text-red" style="font-size:14px;">✗ ${d.feedback}</span><br><span style="font-size:12px;color:var(--text2)">正解：<span style="font-family:var(--mono)">${answerKey}</span></span>`;
+  } catch(e) {}
+  finally { hideLoading(); }
+}
+
+function escapeStr(s) { return String(s).replace(/'/g,"\\'"); }
+function removeFromReview(idx) {
+  state.reviewStack.splice(idx, 1);
+  renderReview();
+}
+function closeSimilarModal(e) {
+  if (e.target.id === 'similar-modal') document.getElementById('similar-modal').classList.remove('show');
+}
+
+/* ========================================
+   HISTORY
+======================================== */
+function addToHistory(record) {
+  state.history.unshift({ ...record, time: new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'}) });
+}
+
+function renderHistory(filter = 'all') {
+  const items = filter === 'all' ? state.history
+    : filter === 'wrong' ? state.history.filter(h => !h.correct)
+    : state.history.filter(h => h.correct);
+  if (!items.length) {
+    document.getElementById('hist-body').innerHTML = '<div style="color:var(--text2);font-size:14px;padding:20px 0;text-align:center;">履歴がありません</div>';
+    return;
+  }
+  document.getElementById('hist-body').innerHTML = items.map(h => `
+    <div class="hist-item">
+      <div class="hist-icon ${h.correct ? 'ok' : 'ng'}">${h.correct ? '✓' : '✗'}</div>
+      <div class="hist-info">
+        <div class="hist-unit">${h.q.unit}</div>
+        <div class="hist-q">${h.q.body.slice(0,30)}${h.q.formula ? '　' + h.q.formula.slice(0,20) : ''}</div>
+        <div class="hist-meta">あなたの答え：${h.userAnswer || 'スキップ'} ・ ${h.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+let currentHistFilter = 'all';
+function switchHistTab(filter, el) {
+  document.querySelectorAll('.hist-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentHistFilter = filter;
+  renderHistory(filter);
+}
+
+/* ========================================
+   NAVIGATION
+======================================== */
+const SCREENS = ['result-screen','review-screen','history-screen','recommend-screen'];
+function showNav(screenId) {
+  SCREENS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const target = document.getElementById(screenId);
+  if (target) target.style.display = 'flex';
+}
+function setNavActive(navId) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(navId)?.classList.add('active');
+}
+
+/* ========================================
+   CLAUDE API
+======================================== */
+async function callClaude(prompt, maxTokens = 500) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': state.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${resp.status}`);
+  }
+  const data = await resp.json();
+  return data.content.map(c => c.text || '').join('');
+}
+
+/* ========================================
+   LOADING
+======================================== */
+function showLoading(msg = 'AIが処理中...') {
+  document.getElementById('loading-text').textContent = msg;
+  document.getElementById('loading').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loading').classList.remove('show');
+}
+
+/* ========================================
+   RESET
+======================================== */
+function resetToSetup() {
+  clearInterval(state.timerInterval);
+  SCREENS.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+  document.getElementById('nav-bar').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+}
+
+/* ========================================
+   ENTER KEY
+======================================== */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const judge = document.getElementById('btn-judge');
+    if (judge && !judge.disabled && judge.style.display !== 'none' && document.getElementById('quiz-screen').style.display !== 'none') {
+      judgeAnswer();
+    }
+  }
+});
+</script>
+</body>
+</html>
